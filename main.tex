@@ -1,0 +1,111 @@
+\documentclass[11pt, oneside]{article}   	% use "amsart" instead of "article" for AMSLaTeX format
+\usepackage{geometry}
+\usepackage[]{algorithm2e}
+\geometry{letterpaper}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{amsthm,enumerate}
+\usepackage{amsmath}
+\usepackage{parskip}
+
+\graphicspath{ {images/} }
+
+\newtheorem*{theorem}{Theorem}
+\newtheorem*{lemma}{Lemma}
+%SetFonts
+
+\title{CS340 - Group Project 1}
+\author{Caroline Shen, Rose Lin, Sunny Qi}
+\date{}							% Activate to display a given date or no date
+
+\begin{document}
+\maketitle
+
+
+\section{Algorithm Description}
+For every two classes, we find the number of students that cannot attend both. Then sort them in decreasing order. 
+
+Pick the first one from the list and find the corresponding two classes. For each of them, if the class is not assigned, pick the smallest room that it can fit. For each available time slot of that room, compare with all the other classes in the same time slot. If there exist a class that is taught by the same professor or there are students that want to take both classes, change to the next available time slot. If all time slots are taken, then change to the next smallest room and put it in an available time slot. If all time slots are not available, put it in a time slot where there are least number of students that want to take all classes in that time slot. Mark this class as assigned. 
+
+Repeat the process for each one in the list. The final schedule should be the optimal schedule.
+
+\section{}
+\begin{algorithm}[H]
+\SetKwFunction{foo}{foo}
+\SetKwProg{Fn}{Scheduling}{(C, S, P, T, R)}{}
+\Fn{\Scheduling{}}{
+    Build $Schedule[][]$ and $Position = []$
+    
+    Build a $room_index_dict$ dictionary
+    
+    Calculate popularity of each class
+    
+    
+    
+    Sort all classes by popularity. 
+    
+    \For{each class c $\in$ C}{
+        Find out the smallest room it can fit with an empty time slot, r.
+        
+        \For{each time t in T}{
+            %optional, need further discussion
+            
+            check all Schedule[t][$r-i$] ($0<i < r$)
+        
+            Find empty Schedule[t][r] without professor conflict= c
+            
+            Position[c] = (t,r)
+        }
+        
+    }
+    return schedule[][], Position
+    
+}
+\end{algorithm}
+
+\begin{algorithm}[H]
+\SetKwFunction{foo}{foo}
+\SetKwProg{Fn}{test}{(S, Pref, Schedule, Position)}{}
+\Fn{\test{}}{
+    count = 0
+
+    \For{each student s in S}{
+        final pick = [0]$\times len(Schedule)$
+
+        \For{each class c in Pref[s]}{
+
+            t = Position[c][0]      
+            
+            \If{final pick[t] is empty}{
+                 final pick[t] = c
+                 
+                 count += 1 
+            }
+        }
+    }
+    return $count/(len(Pref[0])\times len(S))$
+}
+
+\end{algorithm}
+\section{Time Analysis}
+Let $n$ be the number of students times the number of classes they can take. Let $m$ be the total number of classes. Let $p$ be the number of classrooms. Let $t$ be the number of time slots. Notice that $m$, $p$ and $t$ are strictly smaller than $n$.
+
+Getting the conflicts of each pair of classes takes $O(n)$ and sort this list takes $O(n\log n)$. Sort the sizes of the room takes $O(p \log p)$. The outside for loop will run at most $m \choose 2$ times, which is $O(m^2)$. Finding the smallest room that a class can fill takes $O(p)$ for a sorted list. For each available time slot of that room, comparing with all the other classes in the same time slot takes $O(pt)$. Since all pairs of classes and their number of conflicts are stored in a dictionary where the keys are the class pairs and values are the number of conflicts, checking the student conflicts takes $O(1)$.
+
+Therefore, the entire algorithm runs at complexity $O(n \log n)+O(m^2pt)$. If $p$ and $t$ are too small to affect the total time complexity, then the complexity is equivalent to $O(n \log n)+O(m^2)$.
+
+\section{Discussion}
+This time for the basic case we prioritizing popular classes that students want to take at the same time, and set the valid room that can fit students and then put it in a time slot. If we can't find such a valid room, we will then put the certain class into a classroom with capacity smaller than the class size. In this way there must be some students cannot take the class they want to take, but we maximize the classes that each students want to take.
+
+In the mean time, we are taking the classroom and professor's availability into consideration. There will not be any 2 classes which are in the same time slot having the same teacher. Also, the class size won't exceed the capacity of the classrooms. If there are an unavoidable conflict, we will sacrifice the smallest number of students that are involved in this conflict.
+
+However, in this way, when we are computing the optimality, the optimality should be affected since we might brutally put some classes into a classroom that cannot hold the number of students that want to take that class. Yet when we were computing the optimality we didn't concern about that.
+
+Our algorithm for scheduling classes in Haverford doesn't change much, but this time since when we were parsing the Haverford data we did not distinguish class times between only need to take that class in a particular day in a week and need to take the same class twice or three times in a week (eg. suppose there are two classes, the first one is held on Tuesday from 1 to 4 pm, and the second one is held on Tuesday and Thursday from 1 to 2 pm. In our code we parsed the first class time into Tuesday 1 -- 4 pm and the second class time into Tuesday 1 -- 2 pm and Thursday 1 -- 2 pm, with no connection between these two time slots.) Therefore, in our algorithm a student may be distributed a class that is held on Tuesday 1 -- 4 pm (once a week) and another class that is held on Thursday 1 -- 2 pm, but this class should be held twice a week on Tuesday and Thursday afternoon.
+
+Also, in the code we wrote we didn't concern the courses that Haverford students took in Bryn Mawr, which means that we basically just concern about the classes that are held in Haverford. Also, we didn't take the labs for different classes into consideration.
+
+We might also need to concern about the building that different courses are put in. For example, STEM classes will only be held in KINSK Building in Haverford. we may also need to consider this. Moreover, most low level intro classes will be held three times a week, while most upper level classes will only be held twice or even once a week. When we are distributing the classes, we can also put that into consideration. Also, for foreign language classes which are held five times a week, we should try our best to put that into the schedule that has the least conflicts with other lower level classes. 
+
+
+\end{document}
